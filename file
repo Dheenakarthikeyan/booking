@@ -1,0 +1,203 @@
+import React, { useState, useEffect } from "react";
+
+const MovieBooking = () => {
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedTime, setSelectedTime] = useState("");
+  const [selectedSeats, setSelectedSeats] = useState([]);
+  const [bookedSeats, setBookedSeats] = useState({});
+
+  const seats = Array.from({ length: 30 }, (_, i) => i + 1);
+  const rows = ["A", "B", "C", "D", "E"];
+
+  // 📅 Dates
+  const generateDates = () => {
+    const dates = [];
+    const today = new Date();
+
+    for (let i = 0; i < 60; i++) {
+      const d = new Date();
+      d.setDate(today.getDate() + i);
+
+      dates.push(
+        d.toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "short",
+        })
+      );
+    }
+    return dates;
+  };
+
+  const dates = generateDates();
+
+  // ⏰ Time
+  const times = ["10:00 AM", "12:00 PM", "1:00 PM", "5:00 PM", "8:00 PM"];
+
+  useEffect(() => {
+    setSelectedSeats([]);
+  }, [selectedDate, selectedTime]);
+
+  // 🎯 Seat Toggle
+  const toggleSeat = (seat) => {
+    const isBooked =
+      bookedSeats[selectedDate]?.[selectedTime]?.includes(seat);
+
+    if (isBooked) return;
+
+    if (selectedSeats.includes(seat)) {
+      setSelectedSeats(selectedSeats.filter((s) => s !== seat));
+    } else {
+      setSelectedSeats([...selectedSeats, seat]);
+    }
+  };
+
+  // ✅ Booking
+  const handleConfirmBooking = () => {
+    if (!selectedDate || !selectedTime || selectedSeats.length === 0) {
+      alert("Please select date, time and seats!");
+      return;
+    }
+
+    const updated = { ...bookedSeats };
+
+    if (!updated[selectedDate]) updated[selectedDate] = {};
+    if (!updated[selectedDate][selectedTime])
+      updated[selectedDate][selectedTime] = [];
+
+    updated[selectedDate][selectedTime] = [
+      ...updated[selectedDate][selectedTime],
+      ...selectedSeats,
+    ];
+
+    setBookedSeats(updated);
+    setSelectedSeats([]);
+
+    alert("Booking Confirmed 🎟️");
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white p-6">
+
+      <h1 className="text-4xl font-bold text-center mb-8">
+        🎬 Movie Booking
+      </h1>
+
+      {/* DATE */}
+      <h2 className="mb-2 text-lg font-semibold">Select Date</h2>
+      <div className="flex gap-3 overflow-x-auto mb-6 pb-2">
+        {dates.map((d) => (
+          <button
+            key={d}
+            onClick={() => setSelectedDate(d)}
+            className={`px-4 py-2 rounded-full border transition
+              ${
+                selectedDate === d
+                  ? "bg-red-500 border-red-500 scale-105"
+                  : "bg-gray-800 border-gray-700 hover:bg-gray-700"
+              }`}
+          >
+            {d}
+          </button>
+        ))}
+      </div>
+
+      {/* TIME */}
+      <h2 className="mb-2 text-lg font-semibold">Select Time</h2>
+      <div className="flex gap-3 mb-6 flex-wrap">
+        {times.map((t) => (
+          <button
+            key={t}
+            onClick={() => setSelectedTime(t)}
+            className={`px-5 py-2 rounded-full border transition
+              ${
+                selectedTime === t
+                  ? "bg-green-500 border-green-500 scale-105"
+                  : "bg-gray-800 border-gray-700 hover:bg-gray-700"
+              }`}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+
+      {/* 🎬 CURVED SCREEN */}
+      <div className="flex flex-col items-center mb-8">
+        <div className="w-[80%] h-10 bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 rounded-b-[100%] shadow-lg"></div>
+        <div className="w-[60%] h-2 bg-cyan-300 blur-md opacity-70 mt-1"></div>
+        <p className="text-xs text-gray-400 mt-2 tracking-widest">
+          ALL EYES THIS WAY PLEASE
+        </p>
+      </div>
+
+      {/* 💺 SEATS WITH ROWS */}
+      <div className="space-y-3 mb-6">
+        {rows.map((row, rowIndex) => (
+          <div key={row} className="flex items-center gap-3 justify-center">
+
+            {/* Row Label */}
+            <span className="w-6 text-gray-400">{row}</span>
+
+            {/* Seats */}
+            {seats.slice(rowIndex * 6, rowIndex * 6 + 6).map((seat) => {
+              const isBooked =
+                bookedSeats[selectedDate]?.[selectedTime]?.includes(seat);
+
+              return (
+                <div
+                  key={seat}
+                  onClick={() => toggleSeat(seat)}
+                  className={`w-10 text-center py-2 rounded-lg cursor-pointer text-sm font-semibold transition
+                    ${isBooked ? "bg-red-600 cursor-not-allowed" : ""}
+                    ${
+                      selectedSeats.includes(seat)
+                        ? "bg-yellow-400 text-black scale-110"
+                        : "bg-gray-700 hover:bg-gray-500"
+                    }
+                  `}
+                >
+                  {seat}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+
+      {/* LEGEND */}
+      <div className="flex justify-center gap-6 mb-6 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="w-4 h-4 bg-gray-700 rounded"></span> Available
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-4 h-4 bg-yellow-400 rounded"></span> Selected
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-4 h-4 bg-red-600 rounded"></span> Booked
+        </div>
+      </div>
+
+      {/* SUMMARY */}
+      <div className="bg-gray-900 p-5 rounded-xl mb-4 shadow-lg max-w-md mx-auto">
+        <p><strong>Date:</strong> {selectedDate || "Select"}</p>
+        <p><strong>Time:</strong> {selectedTime || "Select"}</p>
+        <p><strong>Seats:</strong> {selectedSeats.join(", ") || "None"}</p>
+        <p className="text-xl mt-2 font-bold">
+          Total: ₹{selectedSeats.length * 150}
+        </p>
+      </div>
+
+      {/* BUTTON */}
+      <div className="max-w-md mx-auto">
+        <button
+          onClick={handleConfirmBooking}
+          className="w-full bg-green-500 py-3 rounded-xl text-lg font-semibold hover:bg-green-600 active:scale-95 transition"
+        >
+          Confirm Booking 🎟️
+        </button>
+      </div>
+
+    </div>
+  );
+};
+
+export default MovieBooking;
